@@ -8,52 +8,53 @@
 #define LED 26
 
 #define SENSOR_TYPE DHT11
-#define DELAY 5000 
+#define DELAY (uint64_t) 5000000 // delay in us
 
 DHT_Unified dht(SENSOR, SENSOR_TYPE);
-long lastMeasure;
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
 
   pinMode(LED, OUTPUT);
+
   // Initialize device.
   dht.begin();
-  lastMeasure = millis();
-}
 
-void loop() {
-  // Effectuer une mesure toutes les 5s
-  // It is best practice not to use delays in the loop a better implementation is shown bellow
-  if(millis() - lastMeasure > DELAY) {
-    lastMeasure = millis();
-    sensors_event_t event;
+  sensors_event_t event;
 
-    // Afficher l'humidité relative avec un peu de formatage
+  // Afficher l'humidité relative avec un peu de formatage
 
-    // Get humidity event and print its value.
-    dht.humidity().getEvent(&event);
-    if (isnan(event.relative_humidity)) {
-      Serial.println(F("Error reading humidity!"));
-    }
-    else {
-      Serial.print(F("Humidity: "));
-      Serial.print(event.relative_humidity);
-      Serial.println(F("%"));
-    }
-
-    // Afficher la température avec un peu de formatage
-
-    // Get temperature event and print its value.
-    dht.temperature().getEvent(&event);
-    if (isnan(event.temperature)) {
-      Serial.println(F("Error reading temperature!"));
-    }
-    else {
-      Serial.print(F("Temperature: "));
-      Serial.print(event.temperature);
-      Serial.println(F("°C"));
-    }
+  // Get humidity event and print its value.
+  dht.humidity().getEvent(&event);
+  if (isnan(event.relative_humidity)) {
+    Serial.println(F("Error reading humidity!"));
   }
+  else {
+    Serial.print(F("Humidity: "));
+    Serial.print(event.relative_humidity);
+    Serial.println(F("%"));
+  }
+
+  // Afficher la température avec un peu de formatage
+
+  // Get temperature event and print its value.
+  dht.temperature().getEvent(&event);
+  if (isnan(event.temperature)) {
+    Serial.println(F("Error reading temperature!"));
+  }
+  else {
+    Serial.print(F("Temperature: "));
+    Serial.print(event.temperature);
+    Serial.println(F("°C"));
+  }
+
+  // Waiting for the transmission of outgoing serial data to complete before going to sleep
+  Serial.flush();
+
+  // Put ESP into deep sleep for 5s
+  esp_sleep_enable_timer_wakeup(DELAY);
+  esp_deep_sleep_start();
 }
+
+void loop() {}
